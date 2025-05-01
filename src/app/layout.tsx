@@ -1,12 +1,8 @@
+// src/app/layout.tsx
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Providers from './providers'
-import { AgentDetailsProvider } from '@/components/ui/agent-details'
-import { SidebarProvider } from '@/components/ui/sidebar'
-import ContentLayout from './content-layout'
-import { ReasoningMessageProvider } from '@/components/toggle-reasoning-messages'
-import { DialogContextProvider } from '@/components/ui/agent-dialog'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,9 +15,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Letta Chatbot with Memory Template',
-  description:
-    'An example chatbot application built on the Letta API, which makes each chatbot a stateful agent (agent with memory) under the hood.'
+  title: 'Letta Chatbot',
+  description: 'Chat with Letta agents'
 }
 
 export default function RootLayout({
@@ -31,19 +26,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
-          <DialogContextProvider>
-            <SidebarProvider>
-              <AgentDetailsProvider>
-                <ReasoningMessageProvider>
-                  <ContentLayout>{children}</ContentLayout>
-                </ReasoningMessageProvider>
-              </AgentDetailsProvider>
-            </SidebarProvider>
-          </DialogContextProvider>
+          <main className='min-h-screen bg-background'>
+            {children}
+          </main>
         </Providers>
       </body>
     </html>

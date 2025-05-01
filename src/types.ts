@@ -18,6 +18,15 @@ export enum ROLE_TYPE {
   USER = 'user'
 }
 
+export interface Agent {
+  description: any
+  id: string
+  name: string
+  model: string
+  embedding: string
+  // Add other fields as needed
+}
+
 export const LETTA_UID = 'letta-uid'
 
 export type Context<T> = { params: Promise<T> }

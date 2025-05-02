@@ -1,11 +1,10 @@
 // src/config/letta-client.ts
 import { LettaClient } from '@letta-ai/letta-client'
-import { config } from 'dotenv'
 
-config()
 
-const LETTA_TOKEN = process.env.LETTA_TOKEN
-const LETTA_BASE_URL = process.env.LETTA_BASE_URL
+const LETTA_TOKEN = process.env.NEXT_PUBLIC_LETTA_TOKEN
+const LETTA_BASE_URL = process.env.NEXT_PUBLIC_LETTA_BASE_URL
+
 
 if (!LETTA_TOKEN) {
   throw new Error('LETTA_TOKEN is not set in environment variables')

@@ -1,4 +1,6 @@
 // src/app/page.tsx
+'use client'
+
 import { AgentList } from '@/components/agent-list'
 
 export default function Home() {

@@ -14,8 +14,15 @@ export function useAgentMessages(agentId: string) {
       if (!response.ok) {
         throw new Error('Network response was not ok')
       }
-      return response.json()
+      const messages = await response.json()
+
+      // Ensure each message has a unique ID
+      return messages.map((msg: AppMessage) => ({
+        ...msg,
+        id: msg.id || `msg-${msg.date}-${Math.random().toString(36).substr(2, 9)}`
+      }))
     },
-    enabled: !!agentId
+    enabled: !!agentId,
+    staleTime: 0 // Always fetch fresh data
   })
 }

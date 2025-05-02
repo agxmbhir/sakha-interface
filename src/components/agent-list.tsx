@@ -28,7 +28,7 @@ export function AgentList() {
                     className="p-6 hover:shadow-lg transition-shadow"
                 >
                     <Link
-                        href={`/chat/${encodeURIComponent(agent.id)}`}
+                        href={`/${encodeURIComponent(agent.id)}`}
                         className="block"
                     >
                         <h2 className="text-xl font-semibold mb-2">{agent.name || 'Unnamed Agent'}</h2>

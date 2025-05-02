@@ -1,4 +1,3 @@
-// src/app/api/chat/route.ts
 import { streamText } from 'ai'
 import { lettaCloud } from '@letta-ai/vercel-ai-sdk-provider'
 
@@ -8,14 +7,14 @@ export async function POST(req: Request) {
     const { messages, agentId } = await req.json()
 
     if (!agentId) {
-        throw new Error('Missing agentId')
+        return new Response('Missing agentId', { status: 400 })
     }
 
-    // Configure with token instead of apiKey
     const result = streamText({
         model: lettaCloud(agentId),
         messages,
     })
 
     return result.toDataStreamResponse()
+
 }

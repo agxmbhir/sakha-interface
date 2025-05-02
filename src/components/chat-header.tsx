@@ -1,9 +1,11 @@
+'use client'
+
 import { AgentDetailsTrigger } from './ui/agent-details'
 import { useAgentContext } from '@/app/[agentId]/context/agent-context'
 import { useAgents } from './hooks/use-agents'
 import { SkeletonLoadBlock } from './ui/skeleton-load-block'
 import { SidebarTrigger } from './ui/sidebar'
-import { ReasoningMessageSwitch } from './toggle-reasoning-messages'
+
 import { LoaderCircle } from 'lucide-react'
 import { useMemo } from 'react'
 
@@ -43,7 +45,6 @@ export const ChatHeader: React.FC = () => {
               />
             ) : (
               <div className='flex flex-row gap-1'>
-                <ReasoningMessageSwitch />
                 <AgentDetailsTrigger isLoading={isLoading} />
               </div>
             )}

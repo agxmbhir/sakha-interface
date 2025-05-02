@@ -1,66 +1,63 @@
-// src/components/chat.tsx
 'use client'
 
-import { useChat } from '@ai-sdk/react'
-import { useEffect, useMemo, useRef } from 'react'
-import { Message } from '@ai-sdk/ui-utils'
+import { useChat } from 'ai/react'
+import { useEffect, useMemo } from 'react'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { MessagePill } from '@/components/ui/message'
 
 interface ChatProps {
     agentId: string
-    existingMessages: Message[]
-    saveAgentIdCookie: (agentId: string) => void
 }
 
-export function Chat({ agentId, existingMessages, saveAgentIdCookie }: ChatProps) {
-    const agentIdSaved = useRef<boolean>(false)
-
-    useEffect(() => {
-        if (agentIdSaved.current) {
-            return
-        }
-
-        agentIdSaved.current = true
-        saveAgentIdCookie(agentId)
-    }, [agentId, saveAgentIdCookie])
-
-    const { messages, status, input, handleInputChange, handleSubmit } = useChat({
+export function Chat({ agentId }: ChatProps) {
+    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+        api: '/api/runtime',
         body: { agentId },
-        initialMessages: existingMessages,
+        initialMessages: []
     })
 
-    const isLoading = useMemo(() => {
-        return status === 'streaming' || status === 'submitted'
-    }, [status])
-
     return (
-        <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-            <div className="flex flex-col flex-1 gap-3">
-                {messages.map((message) => (
-                    <div key={message.id} className="whitespace-pre-wrap">
-                        {message.role === 'user' ? 'User: ' : 'AI: '}
-                        {message.parts.map((part, i) => {
-                            switch (part.type) {
-                                case 'text':
-                                    return <div key={message.id}>{part.text}</div>
-                            }
-                        })}
-                    </div>
-                ))}
+        <div className="flex flex-col h-screen">
+            <header className="flex items-center p-4 border-b">
+                <Link href="/" className="flex items-center text-sm font-medium">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Agents
+                </Link>
+            </header>
+
+            <div className="flex-1 overflow-y-auto p-4">
+                <div className="space-y-4">
+                    {messages.map((message) => (
+                        <MessagePill
+                            key={message.id}
+                            message={message.content}
+                            //@ts-ignore
+                            sender={message.role === 'user' ? 'user_message' : 'assistant'}
+                        />
+                    ))}
+                    {isLoading && (
+                        <div className="flex justify-start">
+                            <div className="animate-pulse">...</div>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            <form onSubmit={handleSubmit}>
-                {isLoading && (
-                    <div className="flex items-center justify-center w-full h-12">
-                        Streaming...
-                    </div>
-                )}
-                <input
-                    className="fixed dark:bg-zinc-900 bottom-0 w-full max-w-md p-2 mb-8 border border-zinc-300 dark:border-zinc-800 rounded shadow-xl"
-                    value={input}
-                    disabled={status !== 'ready'}
-                    placeholder="Say something..."
-                    onChange={handleInputChange}
-                />
+            <form onSubmit={handleSubmit} className="p-4 border-t">
+                <div className="flex gap-2">
+                    <input
+                        value={input}
+                        onChange={handleInputChange}
+                        placeholder="Type a message..."
+                        className="flex-1 p-2 border rounded"
+                        disabled={isLoading}
+                    />
+                    <Button type="submit" disabled={isLoading}>
+                        Send
+                    </Button>
+                </div>
             </form>
         </div>
     )

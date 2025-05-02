@@ -10,7 +10,7 @@ import { useAgents } from '../hooks/use-agents'
 import { UseSendMessageType } from '@/components/hooks/use-send-message'
 import { MESSAGE_TYPE } from '@/types'
 import { ReasoningMessageBlock } from '@/components/ui/reasoning-message'
-import { useReasoningMessage } from '@/components/toggle-reasoning-messages'
+
 import { AssistantMessageContent } from '@letta-ai/letta-client/api/types'
 import { extractMessageText } from '@/lib/utils'
 
@@ -23,7 +23,6 @@ export const Messages = (props: MessagesProps) => {
   const { isSendingMessage, sendMessage } = props
   const { agentId } = useAgentContext()
   const { data: messages, isLoading } = useAgentMessages(agentId)
-  const { isEnabled } = useReasoningMessage()
   const { data: agents } = useAgents()
 
   const messagesListRef = useRef<HTMLDivElement>(null)
@@ -89,7 +88,7 @@ export const Messages = (props: MessagesProps) => {
                       <ReasoningMessageBlock
                         key={message.id}
                         message={extractMessageText(message.message)}
-                        isEnabled={isEnabled}
+                        isEnabled={false}
                       />
                     )
                   } else {

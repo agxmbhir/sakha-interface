@@ -1,4 +1,4 @@
-import { useAgentContext } from '@/app/[agentId]/context/agent-context'
+import { useAgentContext } from '@/app/agents/[agentId]/context/agent-context'
 import { useDeleteAgent } from '@/components/hooks/use-agent-state'
 import { USE_AGENTS_KEY, useAgents } from '@/components/hooks/use-agents'
 import { useCreateAgent } from '@/components/hooks/use-create-agent'
@@ -125,49 +125,15 @@ export function SidebarArea({ canCreate }: SidebarAreaProps) {
                 ) : (
                   hostname
                 )}
+                {isConnected ? <span>Connected</span> : <span >Disconnected</span>}
               </div>
-              <TooltipContent>{runtimeInfo?.LETTA_SERVER_URL}</TooltipContent>
             </TooltipTrigger>
           </Tooltip>
-        </div>
-        <div className='flex justify-end p-2'>
-          {canCreate && (
-            <Button
-              disabled={isCreatingAgent || isLoading || !hostname}
-              type='button'
-              onClick={() => {
-                handleCreateAgent()
-              }}
-              className='inline-flex size-3 h-fit items-center justify-center whitespace-nowrap bg-transparent font-medium text-primary shadow-none ring-offset-background transition-colors hover:hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
-            >
-              {isCreatingAgent ? (
-                <LoaderCircle className='animate-spin' size={17} />
-              ) : (
-                <PlusIcon width={16} height={16} />
-              )}
-            </Button>
-          )}
         </div>
       </div>
 
       {data && data.length > 0 && <AppSidebar agents={data} />}
-      {dialogType === DialogType.EditAgent && (
-        <AgentDialog
-          title='Edit agent'
-          content={<EditAgentForm agentId={agentId} />}
-        />
-      )}
-      {dialogType === DialogType.DeleteAgent && (
-        <AgentDialog
-          title='Delete agent?'
-          content={
-            <DeleteAgentConfirmation
-              agentId={agentId}
-              handleDelete={handleDelete}
-            />
-          }
-        />
-      )}
+
     </Sidebar>
   )
 }

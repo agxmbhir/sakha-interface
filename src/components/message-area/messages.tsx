@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MessagePill } from '@/components/ui/message'
-import { useAgentContext } from '../../app/[agentId]/context/agent-context'
+import { useAgentContext } from '../../app/agents/[agentId]/context/agent-context'
 import { useAgentMessages } from '../hooks/use-agent-messages'
 import { Ellipsis, LoaderCircle } from 'lucide-react'
 import { MessagePopover } from './message-popover'
@@ -10,8 +10,6 @@ import { useAgents } from '../hooks/use-agents'
 import { UseSendMessageType } from '@/components/hooks/use-send-message'
 import { MESSAGE_TYPE } from '@/types'
 import { ReasoningMessageBlock } from '@/components/ui/reasoning-message'
-
-import { AssistantMessageContent } from '@letta-ai/letta-client/api/types'
 import { extractMessageText } from '@/lib/utils'
 
 interface MessagesProps {
@@ -24,71 +22,74 @@ export const Messages = (props: MessagesProps) => {
   const { agentId } = useAgentContext()
   const { data: messages, isLoading } = useAgentMessages(agentId)
   const { data: agents } = useAgents()
-
-  const messagesListRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const isConnected = useIsConnected()
 
-  const mounted = useRef(false)
+  // Add mounted state to prevent hydration mismatch
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (!messages) {
-      return
-    }
+    setMounted(true)
+  }, [])
 
-    // scroll to the bottom on first render
-    if (messagesListRef.current && !mounted.current) {
-      messagesListRef.current.scrollTo(0, messagesListRef.current.scrollHeight)
-      mounted.current = true
+  const scrollToBottom = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight
     }
-  }, [messages])
+  }
+
+  // Only run scroll effects after component is mounted
+  useEffect(() => {
+    if (mounted && messages && messages.length > 0) {
+      scrollToBottom()
+    }
+  }, [messages?.length, mounted])
 
   useEffect(() => {
-    if (messagesListRef.current) {
-      // only scroll to the bottom is user is 100px away from the bottom
-      const boundary = 100
-      const bottom =
-        messagesListRef.current.scrollHeight -
-        messagesListRef.current.clientHeight -
-        boundary
-
-      if (messagesListRef.current.scrollTop >= bottom || isSendingMessage) {
-        messagesListRef.current.scrollTo(
-          0,
-          messagesListRef.current.scrollHeight
-        )
-      }
+    if (mounted && isSendingMessage) {
+      scrollToBottom()
     }
-  }, [messages, isSendingMessage])
+  }, [isSendingMessage, mounted])
 
   const showPopover = useMemo(() => {
-    if (!messages) {
-      return false
-    }
-
+    if (!messages) return false
     return messages.length === 3 && messages[0].message === DEFAULT_BOT_MESSAGE
   }, [messages])
 
+  // Return a loading state during SSR and initial mount
+  if (!mounted) {
+    return (
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto w-full max-w-3xl px-4 py-4">
+            <div className="flex justify-center">
+              <LoaderCircle className="animate-spin" size={32} />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div ref={messagesListRef} className='flex-1 overflow-auto'>
-      <div className='group/message mx-auto w-full max-w-3xl px-4 h-full'>
-        <div className='flex h-full'>
+    <div className="flex-1 flex flex-col min-h-0">
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-y-auto scroll-smooth"
+      >
+        <div className="mx-auto w-full max-w-3xl px-4 py-4">
           {messages ? (
             showPopover ? (
               <MessagePopover sendMessage={sendMessage} key={messages[0].id} />
             ) : (
-              <div className='flex min-w-0 flex-1 flex-col gap-6 pt-4'>
+              <div className="flex flex-col gap-6">
                 {messages.map((message) => {
-                  if (
-                    [
-                      MESSAGE_TYPE.REASONING_MESSAGE,
-                      MESSAGE_TYPE.TOOL_CALL_MESSAGE
-                    ].includes(message.messageType)
-                  ) {
+                  if ([MESSAGE_TYPE.REASONING_MESSAGE, MESSAGE_TYPE.TOOL_CALL_MESSAGE].includes(message.messageType)) {
                     return (
                       <ReasoningMessageBlock
                         key={message.id}
                         message={extractMessageText(message.message)}
-                        isEnabled={false}
+                        isEnabled={true}
                       />
                     )
                   } else {
@@ -102,16 +103,16 @@ export const Messages = (props: MessagesProps) => {
                   }
                 })}
                 {isSendingMessage && (
-                  <div className='flex justify-start'>
-                    <Ellipsis size={24} className='animate-pulse' />
+                  <div className="flex justify-start">
+                    <Ellipsis size={24} className="animate-pulse" />
                   </div>
                 )}
               </div>
             )
           ) : (
-            <div className='flex min-w-0 flex-1 flex-col justify-center items-center h-full'>
+            <div className="flex flex-col justify-center items-center h-full min-h-[200px]">
               {isLoading || (isConnected && agents && agents.length === 0) ? (
-                <LoaderCircle className='animate-spin' size={32} />
+                <LoaderCircle className="animate-spin" size={32} />
               ) : (
                 ERROR_CONNECTING
               )}

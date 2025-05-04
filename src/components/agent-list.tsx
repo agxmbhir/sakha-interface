@@ -5,6 +5,8 @@ import { useAgents } from '@/hooks/use-agents'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 
+// ... existing imports ...
+
 export function AgentList() {
     const { agents, loading, error } = useAgents()
 
@@ -28,7 +30,7 @@ export function AgentList() {
                     className="p-6 hover:shadow-lg transition-shadow"
                 >
                     <Link
-                        href={`/${encodeURIComponent(agent.id)}`}
+                        href={`/agents/${encodeURIComponent(agent.id)}`}
                         className="block"
                     >
                         <h2 className="text-xl font-semibold mb-2">{agent.name || 'Unnamed Agent'}</h2>

@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardDescription, CardHeader } from '../ui/card'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { UseSendMessageType } from '../hooks/use-send-message'
-import { useAgentContext } from '@/app/[agentId]/context/agent-context'
+import { useAgentContext } from '@/app/agents/[agentId]/context/agent-context'
 import {
   MESSAGE_POPOVER_DESCRIPTION,
   suggestedChatActions

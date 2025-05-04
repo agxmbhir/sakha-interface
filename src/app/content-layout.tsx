@@ -4,7 +4,7 @@ import { ChatHeader } from '@/components/chat-header'
 import { useAgents } from '@/components/hooks/use-agents'
 import { SidebarArea } from '@/components/sidebar-area/sidebar-area'
 import { useEffect } from 'react'
-import { useAgentContext } from './[agentId]/context/agent-context'
+import { useAgentContext } from './agents/[agentId]/context/agent-context'
 import { usePathname } from 'next/navigation'
 
 export default function ContentLayout({
@@ -16,17 +16,17 @@ export default function ContentLayout({
   const { agentId, setAgentId } = useAgentContext()
   const pathname = usePathname()
 
-  useEffect(() => {
-    // Only redirect if we're not on a dashboard page and have no agent selected
-    const isDashboardPage = pathname.startsWith('/dashboard')
-    if (
-      !isDashboardPage && // Add this condition
-      data?.[0]?.id &&
-      !agentId
-    ) {
-      setAgentId(data[0].id)
-    }
-  }, [data, agentId, pathname])
+  // useEffect(() => {
+  //   // Only redirect if we're not on a dashboard page and have no agent selected
+  //   const isDashboardPage = pathname.startsWith('/dashboard')
+  //   if (
+  //     !isDashboardPage && // Add this condition
+  //     data?.[0]?.id &&
+  //     !agentId
+  //   ) {
+  //     setAgentId(data[0].id)
+  //   }
+  // }, [data, agentId, pathname])
 
   return (
     <>

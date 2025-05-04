@@ -1,4 +1,4 @@
-import { useAgentContext } from '@/app/[agentId]/context/agent-context'
+import { useAgentContext } from '@/app/agents/[agentId]/context/agent-context'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { SidebarMenuButton, useSidebar } from '@/components/ui/sidebar'
 import { AgentState } from '@letta-ai/letta-client/api'
@@ -41,7 +41,6 @@ export const AppSidebarMenuButton: React.FC<{
               <MenuButtonMessage agentId={agent.id} />
             </span>
           </div>
-          <OptionsMenu agentId={agent.id} />
         </div>
       </SidebarMenuButton>
     </div>

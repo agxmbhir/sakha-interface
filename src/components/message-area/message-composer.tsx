@@ -12,7 +12,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useRef } from 'react'
 import { ArrowUpIcon } from 'lucide-react'
-import { useAgentContext } from '@/app/[agentId]/context/agent-context'
+import { useAgentContext } from '@/app/agents/[agentId]/context/agent-context'
 import { UseSendMessageType } from '../hooks/use-send-message'
 import { TEXTBOX_PLACEHOLDER } from '@/app/lib/labels'
 
@@ -24,14 +24,12 @@ interface MessageComposerProps {
 export function MessageComposer(props: MessageComposerProps) {
   const { agentId } = useAgentContext()
   const { sendMessage, isSendingMessage } = props
-
-  const parentRef = useRef<HTMLDivElement>(null)
-
   const form = useForm({
     defaultValues: { message: '' }
   })
+
   async function onSubmit(data: { message: string }) {
-    if (isSendingMessage) {
+    if (isSendingMessage || !data.message.trim()) {
       return
     }
     form.reset()
@@ -39,13 +37,9 @@ export function MessageComposer(props: MessageComposerProps) {
   }
 
   return (
-    <div className='flex min-w-0 flex-col justify-end'>
-      <div className='relative mx-auto flex w-full gap-2 p-2 md:max-w-3xl md:pb-6'>
-        <div
-          ref={parentRef}
-          tabIndex={-1}
-          className='block max-h-[calc(75dvh)] w-full flex-col rounded-md border border-input bg-muted px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-        >
+    <div className='w-full bg-background border-t border-border py-2'>
+      <div className='mx-auto w-full max-w-3xl px-4'>
+        <div className='flex w-full flex-col rounded-md border border-input bg-muted px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-ring'>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <FormField
@@ -55,7 +49,7 @@ export function MessageComposer(props: MessageComposerProps) {
                   <FormItem>
                     <FormControl>
                       <Textarea
-                        className='!focus-visible:outline-none !focus-visible:ring-0 flex w-full resize-none overflow-hidden border-none bg-transparent text-base shadow-none ring-0 placeholder:text-muted-foreground hover:border-none focus:border-none focus:ring-0 md:text-sm'
+                        className='resize-none border-none bg-transparent text-base outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none md:text-sm'
                         placeholder={TEXTBOX_PLACEHOLDER}
                         {...field}
                         onKeyDown={(e) => {
@@ -73,7 +67,7 @@ export function MessageComposer(props: MessageComposerProps) {
               <div className='flex justify-end'>
                 <Button
                   type='submit'
-                  className='flex h-8 w-1 items-center justify-center rounded-full'
+                  className='flex h-8 w-8 items-center justify-center rounded-full p-0'
                   disabled={isSendingMessage}
                 >
                   <ArrowUpIcon width={14} height={16} />

@@ -16,13 +16,12 @@ export function useAgentMessages(agentId: string) {
       }
       const messages = await response.json()
 
-      // Ensure each message has a unique ID
       return messages.map((msg: AppMessage) => ({
         ...msg,
-        id: msg.id || `msg-${msg.date}-${Math.random().toString(36).substr(2, 9)}`
+        id: msg.id || `msg-${msg.date}-${msg.messageType}-${msg.message.slice(0, 10)}`
       }))
     },
     enabled: !!agentId,
-    staleTime: 0 // Always fetch fresh data
+    staleTime: 0
   })
 }

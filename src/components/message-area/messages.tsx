@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { MessagePill } from '@/components/ui/message'
 import { useAgentContext } from '../../app/agents/[agentId]/context/agent-context'
 import { useAgentMessages } from '../hooks/use-agent-messages'
@@ -10,6 +10,7 @@ import { useAgents } from '../hooks/use-agents'
 import { UseSendMessageType } from '@/components/hooks/use-send-message'
 import { MESSAGE_TYPE } from '@/types'
 import { ReasoningMessageBlock } from '@/components/ui/reasoning-message'
+import { AssistantMessageContent } from '@letta-ai/letta-client/api/types'
 import { extractMessageText } from '@/lib/utils'
 
 interface MessagesProps {
@@ -22,69 +23,66 @@ export const Messages = (props: MessagesProps) => {
   const { agentId } = useAgentContext()
   const { data: messages, isLoading } = useAgentMessages(agentId)
   const { data: agents } = useAgents()
-  const containerRef = useRef<HTMLDivElement>(null)
+
+  const messagesListRef = useRef<HTMLDivElement>(null)
   const isConnected = useIsConnected()
 
-  // Add mounted state to prevent hydration mismatch
-  const [mounted, setMounted] = useState(false)
+  const mounted = useRef(false)
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const scrollToBottom = () => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight
+    if (!messages) {
+      return
     }
-  }
 
-  // Only run scroll effects after component is mounted
-  useEffect(() => {
-    if (mounted && messages && messages.length > 0) {
-      scrollToBottom()
+    // scroll to the bottom on first render
+    if (messagesListRef.current && !mounted.current) {
+      messagesListRef.current.scrollTo(0, messagesListRef.current.scrollHeight)
+      mounted.current = true
     }
-  }, [messages?.length, mounted])
+  }, [messages])
 
   useEffect(() => {
-    if (mounted && isSendingMessage) {
-      scrollToBottom()
+    if (messagesListRef.current) {
+      // only scroll to the bottom is user is 100px away from the bottom
+      const boundary = 100
+      const bottom =
+        messagesListRef.current.scrollHeight -
+        messagesListRef.current.clientHeight -
+        boundary
+
+      if (messagesListRef.current.scrollTop >= bottom || isSendingMessage) {
+        messagesListRef.current.scrollTo(
+          0,
+          messagesListRef.current.scrollHeight
+        )
+      }
     }
-  }, [isSendingMessage, mounted])
+  }, [messages, isSendingMessage])
 
   const showPopover = useMemo(() => {
-    if (!messages) return false
+    if (!messages) {
+      return false
+    }
+
     return messages.length === 3 && messages[0].message === DEFAULT_BOT_MESSAGE
   }, [messages])
 
-  // Return a loading state during SSR and initial mount
-  if (!mounted) {
-    return (
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-3xl px-4 py-4">
-            <div className="flex justify-center">
-              <LoaderCircle className="animate-spin" size={32} />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-y-auto scroll-smooth"
-      >
-        <div className="mx-auto w-full max-w-3xl px-4 py-4">
+    <div ref={messagesListRef} className='flex-1 overflow-auto'>
+      <div className='group/message mx-auto w-full max-w-3xl px-4 h-full'>
+        <div className='flex h-full'>
           {messages ? (
             showPopover ? (
               <MessagePopover sendMessage={sendMessage} key={messages[0].id} />
             ) : (
-              <div className="flex flex-col gap-6">
+              <div className='flex min-w-0 flex-1 flex-col gap-6 pt-4'>
                 {messages.map((message) => {
-                  if ([MESSAGE_TYPE.REASONING_MESSAGE, MESSAGE_TYPE.TOOL_CALL_MESSAGE].includes(message.messageType)) {
+                  if (
+                    [
+                      MESSAGE_TYPE.REASONING_MESSAGE,
+                      MESSAGE_TYPE.TOOL_CALL_MESSAGE
+                    ].includes(message.messageType)
+                  ) {
                     return (
                       <ReasoningMessageBlock
                         key={message.id}
@@ -103,16 +101,16 @@ export const Messages = (props: MessagesProps) => {
                   }
                 })}
                 {isSendingMessage && (
-                  <div className="flex justify-start">
-                    <Ellipsis size={24} className="animate-pulse" />
+                  <div className='flex justify-start'>
+                    <Ellipsis size={24} className='animate-pulse' />
                   </div>
                 )}
               </div>
             )
           ) : (
-            <div className="flex flex-col justify-center items-center h-full min-h-[200px]">
+            <div className='flex min-w-0 flex-1 flex-col justify-center items-center h-full'>
               {isLoading || (isConnected && agents && agents.length === 0) ? (
-                <LoaderCircle className="animate-spin" size={32} />
+                <LoaderCircle className='animate-spin' size={32} />
               ) : (
                 ERROR_CONNECTING
               )}

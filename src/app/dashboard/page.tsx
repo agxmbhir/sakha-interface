@@ -155,7 +155,7 @@ export default function ComposioDashboard() {
             <div className="flex-1">
                 <Card className="h-full">
                     <CardHeader className="pb-8"> {/* Increased bottom padding */}
-                        <CardTitle className="text-2xl mb-2">Composio Integration</CardTitle> {/* Larger title, more space */}
+                        <CardTitle className="text-2xl mb-2">Integrations</CardTitle> {/* Larger title, more space */}
                         <CardDescription className="text-base"> {/* Larger description */}
                             Connect your Lettabot agents to Composio apps
                         </CardDescription>

@@ -1,15 +1,9 @@
-// src/app/api/composio/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { OpenAIToolSet, InitiateConnectionDataReq } from 'composio-core'
+import { OpenAIToolSet } from 'composio-core'
 
 
-export type IntegrationParams = {
-    appName: string,
-    entityId: 'default'
-}
 export async function POST(req: NextRequest) {
     try {
-
         const { action, params } = await req.json()
         const apiKey = req.headers.get('x-composio-key')
 
@@ -26,15 +20,35 @@ export async function POST(req: NextRequest) {
         switch (action) {
             case 'listAvailableApps':
                 result = await toolset.apps.list()
+                console.log(result)
                 break
-            case 'listIntegratedApps':
+            case 'listIntegrations':
                 result = await toolset.integrations.list()
                 break
-            case 'getRequiredParams':
-                result = await toolset.integrations.getRequiredParams(params.integrationId)
+            case 'getOrCreateIntegration':
+                // First try to find existing integration for this app
+                console.log("Creating integrations with ID", params)
+                const newIntegration = await toolset.integrations.create({
+                    appUniqueKey: params.appUniqueKey,
+                    name: params.name,
+                    useComposioAuth: true
+                })
+                result = { integrationId: newIntegration.id }
                 break
-            case 'initiateIntegration':
-                result = await toolset.connectedAccounts.initiate(params as IntegrationParams)
+            case 'initiateConnection':
+                // Get entity for the user
+                const entity = await toolset.getEntity(params.entityId || 'default')
+
+                // Initiate connection using appName
+                result = await entity.initiateConnection({
+                    appName: params.integrationId
+                })
+                break
+            case 'checkConnection':
+                // Check connection status
+                result = await toolset.connectedAccounts.get({
+                    connectedAccountId: params.connectedAccountId
+                })
                 break
             default:
                 return NextResponse.json(

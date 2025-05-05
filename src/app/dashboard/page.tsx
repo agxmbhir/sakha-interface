@@ -6,9 +6,11 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search } from 'lucide-react' // Make sure to install lucide-react if not already installed
+import { Apps, InitiateConnectionResponse } from 'composio-core'
 
 type App = {
     id?: string
+    appUniqueKey?: string
     appId?: string
     name?: string
     description?: string
@@ -37,6 +39,7 @@ export default function ComposioDashboard() {
         }
     }, [])
 
+
     const fetchApps = async (type: 'available' | 'integrated') => {
         if (!apiKey) return
 
@@ -51,7 +54,7 @@ export default function ComposioDashboard() {
                     'x-composio-key': apiKey
                 },
                 body: JSON.stringify({
-                    action: type === 'available' ? 'listAvailableApps' : 'listIntegratedApps'
+                    action: type === 'available' ? 'listAvailableApps' : 'listIntegrations'
                 })
             })
 
@@ -61,12 +64,10 @@ export default function ComposioDashboard() {
             }
 
             const result = await response.json()
-            const items = result.items || result || []
-            console.log(items[0])
             if (type === 'available') {
-                setAvailableApps(items)
+                setAvailableApps(result.items || result || [])
             } else {
-                setIntegratedApps(items)
+                setIntegratedApps(result.items || result || [])
             }
         } catch (err: any) {
             console.error(`Error fetching ${type} apps:`, err)
@@ -87,43 +88,64 @@ export default function ComposioDashboard() {
         localStorage.setItem('composioApiKey', inputKey)
     }
 
-    const handleIntegrate = async (appId: string) => {
-        setIntegratingId(appId)
+
+
+    const handleIntegrate = async (app: App) => {
+
+        setIntegratingId(app.appId || null)
         try {
-            const response = await fetch('/api/composio', {
+            // Get or create integration
+            const integrationResponse = await fetch('/api/composio', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'x-composio-key': apiKey
                 },
                 body: JSON.stringify({
-                    action: 'initiateIntegration',
+                    action: 'getOrCreateIntegration',
                     params: {
-                        integrationId: appId,
+                        appUniqueKey: app.appUniqueKey,
+                        name: `${app.name} Integration`
+                    }
+                })
+            })
+
+            if (!integrationResponse.ok) throw new Error('Failed to get/create integration')
+            const { integrationId } = await integrationResponse.json()
+            console.log("Found the integration ID", integrationResponse.json())
+            // Initiate connection
+            const connectResponse = await fetch('/api/composio', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-composio-key': apiKey
+                },
+                body: JSON.stringify({
+                    action: 'initiateConnection',
+                    params: {
+                        integrationId: integrationId,
                         entityId: 'default'
                     }
                 })
             })
 
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || 'Failed to initiate integration')
-            }
+            if (!connectResponse.ok) throw new Error('Failed to initiate connection')
+            const result = await connectResponse.json()
 
-            const result = await response.json()
+            // Handle OAuth redirect if needed
             if (result.redirectUrl) {
                 window.open(result.redirectUrl, '_blank')
-                fetchApps('integrated')
-            } else {
-                throw new Error('No redirect URL returned')
             }
+
         } catch (err: any) {
             console.error('Integration error:', err)
-            alert('Failed to initiate integration: ' + (err.message || err))
+            alert('Failed to integrate: ' + (err.message || err))
         } finally {
             setIntegratingId(null)
         }
     }
+
+
 
     useEffect(() => {
         setIsMounted(true)
@@ -222,7 +244,7 @@ export default function ComposioDashboard() {
                                                 </div>
                                             ) : (
                                                 filteredApps.map((app, index) => {
-                                                    const appKey = app.id || app.appId || `available-${index}`
+                                                    const appKey = app.appUniqueKey || app.appId || `available-${index}`
                                                     return (
                                                         <li
                                                             key={appKey}
@@ -232,11 +254,13 @@ export default function ComposioDashboard() {
                                                                 <div className="font-medium">{app.name || 'Unnamed App'}</div>
                                                                 <div className="text-sm text-muted-foreground">
                                                                     {app.description || 'No description available'}
+
+
                                                                 </div>
                                                             </div>
                                                             <Button
                                                                 size="sm"
-                                                                onClick={() => handleIntegrate(app.name || "")}
+                                                                onClick={() => handleIntegrate(app)}
                                                                 disabled={integratingId === (app.id || app.appId)}
                                                                 className="ml-4 px-6"
                                                             >

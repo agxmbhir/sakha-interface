@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import client from '@/config/letta-client'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
-import { AgentState } from '@letta-ai/letta-client/serialization'
 
 const AGENT_TEMPLATES = ["panda:latest"]
 const LETTA_PROJECT_ID = process.env.LETTA_DEFAULT_PROJECT_ID

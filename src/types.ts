@@ -1,6 +1,21 @@
 import { AssistantMessageContent } from '@letta-ai/letta-client/api/types'
 
 
+import 'next-auth'
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id?: string
+      name?: string | null
+      email?: string | null
+      image?: string | null
+      uuid: string
+    }
+  }
+}
+
+
 export enum MESSAGE_TYPE {
   USER_MESSAGE = 'user_message',
   ASSISTANT_MESSAGE = 'assistant',

@@ -6,8 +6,8 @@ import { SkeletonLoadBlock } from './ui/skeleton-load-block'
 import { SidebarTrigger } from './ui/sidebar'
 import { Button } from './ui/button'
 import { useRouter } from 'next/navigation'
-
-import { LoaderCircle, LayoutDashboard, List } from 'lucide-react'
+import { signOut } from 'next-auth/react'
+import { LoaderCircle, LayoutDashboard, List, LogOut } from 'lucide-react'
 import { useMemo } from 'react'
 
 export const ChatHeader: React.FC = () => {
@@ -21,6 +21,10 @@ export const ChatHeader: React.FC = () => {
     return agentData.find((a) => a.id === agentId)
   }, [agentData, agentId])
 
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/auth/signin' })
+  }
   return (
     <>
       <div className='flex-1 overflow-hidden'>
@@ -65,24 +69,40 @@ export const ChatHeader: React.FC = () => {
                   <span>AGENTS</span>
                   <List size={16} />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className='hidden sm:flex items-center gap-2 text-xs font-bold'
+                  onClick={handleLogout}
+                >
+                  <span>LOGOUT</span>
+                  <LogOut size={16} />
+                </Button>
 
                 {/* Mobile Navigation */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className='sm:hidden'
-                  onClick={() => router.push('/dashboard')}
-                >
-                  <LayoutDashboard size={20} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className='sm:hidden'
-                  onClick={() => router.push('/agents')}
-                >
-                  <List size={20} />
-                </Button>
+                <div className='sm:hidden flex items-center gap-1'>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => router.push('/dashboard')}
+                  >
+                    <LayoutDashboard size={20} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => router.push('/agents')}
+                  >
+                    <List size={20} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={20} />
+                  </Button>
+                </div>
               </div>
             )}
           </div>

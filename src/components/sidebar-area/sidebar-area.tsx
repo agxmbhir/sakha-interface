@@ -123,9 +123,9 @@ export function SidebarArea({ canCreate }: SidebarAreaProps) {
                 {isLoading ? (
                   <SkeletonLoadBlock className='w-full h-[1.43em]' />
                 ) : (
-                  hostname
+                  isConnected ? <span>Connected</span> : <span>Disconnected</span>
                 )}
-                {isConnected ? <span>Connected</span> : <span >Disconnected</span>}
+
               </div>
             </TooltipTrigger>
           </Tooltip>

@@ -3,8 +3,10 @@ import type { NextRequest } from 'next/server'
 import { v4 as uuid } from 'uuid'
 import { LETTA_UID } from '@/types'
 import { USE_COOKIE_BASED_AUTHENTICATION } from '@/constants'
+import { withAuth } from 'next-auth/middleware'
 
-export function middleware(request: NextRequest) {
+// Create a middleware handler that combines both cookie and NextAuth
+async function cookieMiddleware(request: NextRequest) {
   if (!USE_COOKIE_BASED_AUTHENTICATION) {
     // do nothing if we're not using cookie based authentication
     return NextResponse.next()
@@ -18,11 +20,36 @@ export function middleware(request: NextRequest) {
     response.cookies.set({
       name: LETTA_UID,
       value: lettaUid,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // expires 24 hours from now
-      sameSite: 'lax', // Helps prevent csrf
-      httpOnly: true, // Prevents client-side access
-      secure: process.env.NODE_ENV === 'production' // send over https if we're on prod
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      sameSite: 'lax',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production'
     })
   }
   return response
+}
+
+// Combine NextAuth with cookie middleware
+const authMiddleware = withAuth(
+  async function middleware(req) {
+    // First run the cookie middleware
+    const cookieResponse = await cookieMiddleware(req)
+    return cookieResponse
+  },
+  {
+    pages: {
+      signIn: '/auth/signin',
+    },
+  }
+)
+
+export default authMiddleware
+
+export const config = {
+  matcher: [
+    '/dashboard/:path*',
+    '/agents/:path*',
+    '/api/composio/:path*',
+    '/api/agents/:path*',
+  ]
 }

@@ -14,7 +14,6 @@ export const ChatHeader: React.FC = () => {
   const router = useRouter()
   const { agentId } = useAgentContext()
   const { data: agentData, isLoading } = useAgents()
-
   const selectedAgent = useMemo(() => {
     if (!agentData) return null
     if (agentData.length === 0) return null

@@ -20,14 +20,12 @@ export async function POST(req: NextRequest) {
         switch (action) {
             case 'listAvailableApps':
                 result = await toolset.apps.list()
-                console.log(result)
                 break
             case 'listIntegrations':
                 result = await toolset.integrations.list()
                 break
             case 'getOrCreateIntegration':
                 // First try to find existing integration for this app
-                console.log("Creating integrations with ID", params)
                 const newIntegration = await toolset.integrations.create({
                     appUniqueKey: params.appUniqueKey,
                     name: params.name,

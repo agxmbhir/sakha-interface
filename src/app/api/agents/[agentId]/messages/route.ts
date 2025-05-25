@@ -14,6 +14,7 @@ export async function GET(
     const messages = await client.agents.messages.list(agentId, {
       limit: 1000
     })
+
     const formattedMessages = messages
       .filter((msg: LettaMessageUnion | any): msg is LettaMessageUnion => {
         return ['user_message', 'assistant_message', 'tool_call_message', 'tool_return_message'].includes(msg.messageType);

@@ -36,7 +36,7 @@ export function SidebarArea({ canCreate }: SidebarAreaProps) {
   const { data: runtimeInfo, isLoading: isRuntimeInfoLoading } =
     useGetRuntimeInfo()
 
-  const { data, isLoading: isAgentsLoading } = useAgents()
+  const { data, isLoading: isAgentsLoading, isError: isAgentsError } = useAgents()
   const isConnected = useIsConnected()
   const { mutate: deleteAgent } = useDeleteAgent()
 
@@ -59,8 +59,8 @@ export function SidebarArea({ canCreate }: SidebarAreaProps) {
       onSuccess: (data) => {
         queryClient.setQueriesData(
           { queryKey: USE_AGENTS_KEY },
-          (oldData: AgentState[]) => {
-            return [data, ...oldData]
+          (oldData?: AgentState[]) => {
+            return [data, ...(oldData || [])]
           }
         )
         setAgentId(data.id)
@@ -91,10 +91,10 @@ export function SidebarArea({ canCreate }: SidebarAreaProps) {
   }
 
   useEffect(() => {
-    if (!isAgentsLoading && !data?.length && canCreate) {
+    if (!isAgentsLoading && !isAgentsError && !data?.length && canCreate) {
       handleCreateAgent()
     }
-  }, [data, isAgentsLoading, canCreate])
+  }, [data, isAgentsLoading, isAgentsError, canCreate, handleCreateAgent])
 
   const hostname = useMemo(() => {
     if (runtimeInfo?.LETTA_SERVER_URL) {

@@ -1,4 +1,6 @@
 // src/app/(server)/api/agents/route.ts
+console.log('--- SRC/APP/API/AGENTS/ROUTE.TS LOADED ---');
+
 import { NextRequest, NextResponse } from 'next/server'
 import client from '@/config/letta-client'
 import { getServerSession } from 'next-auth'
@@ -9,8 +11,10 @@ const AGENT_TEMPLATES = ["panda:latest"]
 const LETTA_PROJECT_ID = process.env.LETTA_DEFAULT_PROJECT_ID
 
 export async function GET(req: NextRequest) {
+  console.log('--- GET /API/AGENTS CALLED ---');
   try {
     const session = await getServerSession(authOptions)
+    console.log('Session in /api/agents:', session)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

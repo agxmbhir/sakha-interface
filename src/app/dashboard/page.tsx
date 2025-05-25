@@ -64,6 +64,7 @@ export default function ComposioDashboard() {
             }
 
             const result = await response.json()
+            
             if (type === 'available') {
                 setAvailableApps(result.items || result || [])
             } else {

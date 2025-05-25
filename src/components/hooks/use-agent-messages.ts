@@ -16,10 +16,13 @@ export function useAgentMessages(agentId: string) {
       }
       const messages = await response.json()
 
-      return messages.map((msg: AppMessage) => ({
-        ...msg,
-        id: msg.id || `msg-${msg.date}-${msg.messageType}-${msg.message.slice(0, 10)}`
-      }))
+      return messages.map((msg: AppMessage) => {
+        const messageContentForId = (typeof msg.message === 'string' && msg.message) ? msg.message.slice(0, 10) : 'nodata';
+        return {
+          ...msg,
+          id: msg.id || `msg-${msg.date}-${msg.messageType}-${messageContentForId}`
+        };
+      })
     },
     enabled: !!agentId,
     staleTime: 0

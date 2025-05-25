@@ -1,10 +1,8 @@
-
-
-
 import { NextRequest, NextResponse } from 'next/server'
 import client from '@/config/letta-client'
 import { MESSAGE_TYPE } from '@/types'
 import { LettaMessageUnion } from '@letta-ai/letta-client/api/types'
+import { v4 as uuidv4 } from 'uuid'
 
 export async function GET(
   req: NextRequest,
@@ -20,7 +18,8 @@ export async function GET(
         return ['user_message', 'assistant_message', 'tool_call_message', 'tool_return_message'].includes(msg.messageType)
       })
       .map((msg: LettaMessageUnion) => {
-        const baseId = msg.id || `msg-${msg.date}-${Math.random().toString(36).substr(2, 9)}`
+        const randomPart = uuidv4().substr(0, 9)
+        const baseId = msg.id || `msg-${msg.date}-${randomPart}`
         const timestamp = new Date(msg.date).getTime()
 
         switch (msg.messageType) {
@@ -30,7 +29,7 @@ export async function GET(
               id: baseId,
               date: timestamp,
               message: 'toolCall' in msg ? JSON.stringify(msg.toolCall) : msg.toolReturn,
-              messageType: MESSAGE_TYPE.TOOL_CALL_MESSAGE
+              messageType: MESSAGE_TYPE.TOOL_CALL
             }
           default:
             return {

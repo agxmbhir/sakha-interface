@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import client from '@/config/letta-client'
-import { MESSAGE_TYPE } from '@/types'
+import { MESSAGE_TYPE, AppMessage } from '@/types'
 import { LettaMessageUnion } from '@letta-ai/letta-client/api/types'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -10,36 +10,56 @@ export async function GET(
 ) {
   const { agentId } = await context.params
   try {
-    const messages = await client.agents.messages.list(agentId)
-
+    // client.agents.messages.reset(agentId)
+    const messages = await client.agents.messages.list(agentId, {
+      limit: 1000
+    })
     const formattedMessages = messages
-      .filter((msg: LettaMessageUnion) => {
-        // Only keep user messages, assistant messages, and tool interactions
-        return ['user_message', 'assistant_message', 'tool_call_message', 'tool_return_message'].includes(msg.messageType)
+      .filter((msg: LettaMessageUnion | any): msg is LettaMessageUnion => {
+        return ['user_message', 'assistant_message', 'tool_call_message', 'tool_return_message'].includes(msg.messageType);
       })
-      .map((msg: LettaMessageUnion) => {
-        const randomPart = uuidv4().substr(0, 9)
-        const baseId = msg.id || `msg-${msg.date}-${randomPart}`
-        const timestamp = new Date(msg.date).getTime()
+      .map((msg: LettaMessageUnion): AppMessage | null => {
+        const randomPart = uuidv4().substr(0, 9);
+        const timestamp = new Date(msg.date).getTime();
+        const baseId = msg.id || `msg-${timestamp}-${randomPart}`;
 
         switch (msg.messageType) {
           case 'tool_call_message':
-          case 'tool_return_message':
+            if (!('toolCall' in msg) || !msg.toolCall) {
+              console.warn('Skipping tool_call_message without toolCall data:', msg);
+              return null;
+            }
             return {
               id: baseId,
               date: timestamp,
-              message: 'toolCall' in msg ? JSON.stringify(msg.toolCall) : msg.toolReturn,
+              message: JSON.stringify(msg.toolCall),
               messageType: MESSAGE_TYPE.TOOL_CALL
+            };
+          case 'tool_return_message':
+            if (!('toolReturn' in msg)) {
+              console.warn('Skipping tool_return_message without toolReturn data field:', msg);
+              return null;
             }
-          default:
             return {
               id: baseId,
               date: timestamp,
-              message: 'content' in msg ? msg.content : "",
-              messageType: msg.messageType === 'user_message' ? MESSAGE_TYPE.USER_MESSAGE : MESSAGE_TYPE.ASSISTANT_MESSAGE
+              message: JSON.stringify(msg.toolReturn),
+              messageType: MESSAGE_TYPE.TOOL_RETURN
+            };
+          default:
+            if (!('content' in msg)) {
+              console.warn(`Skipping ${msg.messageType} without content data:`, msg);
+              return null;
             }
+            return {
+              id: baseId,
+              date: timestamp,
+              message: msg.content,
+              messageType: msg.messageType === 'user_message' ? MESSAGE_TYPE.USER_MESSAGE : MESSAGE_TYPE.ASSISTANT_MESSAGE
+            };
         }
       })
+      .filter(Boolean) as AppMessage[];
 
     return NextResponse.json(formattedMessages)
   } catch (error) {

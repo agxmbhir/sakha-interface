@@ -29,10 +29,12 @@ export const extractMessageText = (message: AssistantMessageContent) => {
         if (typeof content === 'string') {
           return content
         }
-
-        return content.text
+        if (content && typeof content === 'object' && 'text' in content && typeof content.text === 'string') {
+          return content.text;
+        }
+        return ''; // Fallback for malformed content objects in the array
       })
-      .join(' ')
+      .join(' ');
   }
 
   return ''

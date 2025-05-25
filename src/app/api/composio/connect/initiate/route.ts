@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // Adjusted path if necessary
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getComposioToolset } from '@/lib/composio';
 import { Apps } from 'composio-core';
 
@@ -11,17 +11,14 @@ export async function POST(req: NextRequest) {
     }
 
     let appNameString: string;
+    let integrationId: string;
     try {
         const body = await req.json();
         appNameString = body.appName;
+        integrationId = body.integrationId;
     } catch (e) {
         return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
-
-    if (!appNameString || typeof appNameString !== 'string' || !Apps[appNameString.toUpperCase() as keyof typeof Apps]) {
-        return NextResponse.json({ error: 'Invalid or missing appName provided. Ensure it matches Composio App enum keys (e.g., GITHUB, SLACK).' }, { status: 400 });
-    }
-    const appToConnectEnumKey = appNameString.toUpperCase() as keyof typeof Apps;
 
     const toolset = getComposioToolset();
     const userIdInMyApp = session.user.uuid;
@@ -29,10 +26,9 @@ export async function POST(req: NextRequest) {
     try {
         const entity = await toolset.getEntity(userIdInMyApp);
         console.log(`Initiating ${appNameString} connection for entity: ${entity.id}`);
-        console.log('appToConnectEnumKey', appToConnectEnumKey)
-        console.log('entity', entity)
+
         const connectionRequest = await entity.initiateConnection({
-            appName: appToConnectEnumKey,
+            integrationId,
         });
 
         if (connectionRequest?.redirectUrl) {

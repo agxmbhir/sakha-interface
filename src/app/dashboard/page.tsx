@@ -13,14 +13,15 @@ import { Search, AlertCircle, CheckCircle2 } from 'lucide-react'
 // Removed dotenv import as process.env is directly available in Next.js client components (if .env is set up correctly)
 
 // Define the structure for an available app from Composio
-interface ComposioApp {
+export interface ComposioApp {
     appKey: string;
     displayName: string;
     logo?: string;
     description?: string;
+    integrationId: string;
 }
 
-interface UserConnection {
+export interface UserConnection {
     id: string;                 // Composio Connected Account ID
     appName: string;            // Name of the app (e.g., "GitHub", "Slack") - crucial for display
     status: string;             // e.g., "ACTIVE", "INACTIVE"
@@ -97,15 +98,15 @@ export default function DashboardPage() {
         }
     }, [fetchConnectedApplications, fetchAllComposioApps]); // Removed isMounted and fetchApps from dependencies
 
-    const handleConnect = async (appKey: string, displayName: string) => {
+    const handleConnect = async (integrationId: string, displayName: string) => {
         if (isConnecting) return;
-        setIsConnecting(appKey);
+        setIsConnecting(integrationId);
         setUiMessage(null);
         try {
             const response = await fetch('/api/composio/connect/initiate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ appName: appKey }),
+                body: JSON.stringify({ integrationId: integrationId }),
             });
             const data = await response.json();
 
@@ -213,8 +214,8 @@ export default function DashboardPage() {
                                                 </div>
                                             </div>
                                             <Button
-                                                onClick={() => handleConnect(app.appKey, app.displayName)}
-                                                disabled={isConnecting === app.appKey}
+                                                onClick={() => handleConnect(app.integrationId, app.displayName)}
+                                                disabled={isConnecting === app.integrationId}
                                                 size="sm"
                                             >
                                                 {isConnecting === app.appKey ? 'Connecting...' : 'Connect'}
